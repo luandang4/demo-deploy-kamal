@@ -1,24 +1,61 @@
-# README
+Các bước cơ bản deploy với Kamal
+- Chuẩn bị server, repository lưu trữ image, cài đặt kamal
+- Config trong file config/deploy.yml
+  ```
+  # một số config chính
+  service: demo_kamal_1
+    image: luandang1402/demo_kamal_1
+    servers:
+      web:
+        - 14.225.29.112
+    registry:
+      username: luandang1402
+      password:
+        - KAMAL_REGISTRY_PASSWORD
+    env:
+      secret:
+        - RAILS_MASTER_KEY
+      clear:
+        SOLID_QUEUE_IN_PUMA: true
+        DB_HOST: demo_kamal_1-db # nếu sử dụng db accessory server
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+    accessories:
+      db:
+        image: mysql:8.0
+        host: 14.225.29.112
+        port: "127.0.0.1:3306:3306"
+        env:
+          clear:
+            MYSQL_ROOT_HOST: '%'
+          secret:
+            - MYSQL_ROOT_PASSWORD
+        directories:
+          - data:/var/lib/mysql
 
-Things you may want to cover:
+- Khởi tạo vào truyền biến môi trường vào trong file .kamal/secrets
+ví dụ:
+  deploy.yml:
+  ```
+  registry:
+    username: luandang1402
+    password:
+      - KAMAL_REGISTRY_PASSWORD
+  ```
 
-* Ruby version
+  .kamal/secrets:
+  ```
+  KAMAL_REGISTRY_PASSWORD=$KAMAL_REGISTRY_PASSWORD_ENV
+  ```
 
-* System dependencies
+  .env:
+  ```
+  KAMAL_REGISTRY_PASSWORD_ENV=dckr_pat_vitxxxx
+  ```
 
-* Configuration
+** chạy export `$(cat .env | xargs)` hoặc export `$(grep -v '^#' .env | xargs)` để lấy biến môi trường
 
-* Database creation
+- Chạy `kamal setup`
 
-* Database initialization
+- Nếu lần sau không sửa các env thì chỉ cần chạy
 
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+`kamal deploy`
